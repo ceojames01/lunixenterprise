@@ -1,11 +1,12 @@
 {
   "name": "launchpad-server",
   "version": "1.0.0",
-  "description": "LaunchPad - Startup project tracker API",
+  "description": "Lunix Enterprise - corporate portal API",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
+    "seed": "node scripts/seed.js",
     "test": "jest --coverage",
     "lint": "eslint src/"
   },

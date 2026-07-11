@@ -41,7 +41,7 @@ const fallbackLeaders = [
 ];
 
 const SectionHeading = ({ children }) => (
-  <h2 className="font-black text-2xl uppercase border-l-4 border-f1-red pl-3 tracking-wide">
+  <h2 className="font-black text-2xl uppercase border-l-4 border-f1-red pl-3 tracking-wider">
     {children}
   </h2>
 );
@@ -55,7 +55,7 @@ const MediaBlock = ({ item, className = '' }) =>
     </div>
   );
 
-const Home = () => {
+const Dashboard = () => {
   const [picks, setPicks] = useState([]);
   const [articles, setArticles] = useState([]);
   const [leaders, setLeaders] = useState([]);
@@ -88,9 +88,9 @@ const Home = () => {
 
   return (
     <main className="bg-f1-asphalt text-white">
-      {/* Hero */}
+      {/* Hero media canvas */}
       <section className="relative w-full border-b-4 border-f1-red">
-        <div className="w-full aspect-[21/9] md:min-h-[450px] bg-gradient-to-br from-zinc-800 via-f1-asphalt to-black" />
+        <div className="w-full aspect-[21/9] md:min-h-[460px] bg-gradient-to-br from-zinc-800 via-f1-asphalt to-black" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
         <div className="absolute bottom-0 left-0 p-6 md:p-12">
           <div className="bg-f1-black/80 border-l-4 border-f1-red p-4 max-w-xl backdrop-blur-sm">
@@ -102,9 +102,9 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Vertical content structure */}
+      {/* Main layout track */}
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-12 flex flex-col gap-16">
-        {/* Overview */}
+        {/* Section A: Overview */}
         <section>
           <SectionHeading>Overview</SectionHeading>
           <div className="h-px w-full bg-f1-border-grey mt-4" />
@@ -115,7 +115,7 @@ const Home = () => {
           </p>
         </section>
 
-        {/* Corporate structure */}
+        {/* Section B: Corporate structure */}
         <section>
           <SectionHeading>Corporate structure</SectionHeading>
           <div className="h-px w-full bg-f1-border-grey mt-4" />
@@ -125,13 +125,13 @@ const Home = () => {
           </p>
         </section>
 
-        {/* Editors Picture */}
+        {/* Section C: Editors Picture */}
         <section>
-          <div className="flex items-end justify-between">
+          <div className="flex justify-between items-end w-full">
             <SectionHeading>Editors Picture</SectionHeading>
             <a
               href="#"
-              className="text-f1-red font-bold hover:text-white transition-colors"
+              className="text-f1-red text-xs uppercase tracking-widest font-bold font-sans hover:text-white transition-colors"
             >
               See all &gt;
             </a>
@@ -141,26 +141,24 @@ const Home = () => {
             {picks.map((pick) => (
               <article
                 key={pick._id}
-                className="bg-f1-card-bg overflow-hidden group border-t-4 border-f1-red hover:shadow-xl transition-all duration-300"
+                className="bg-f1-card-bg rounded-none border-t-4 border-f1-red overflow-hidden group relative flex flex-col transition-all duration-300 hover:shadow-2xl"
               >
                 <div className="h-48 overflow-hidden">
                   <MediaBlock
                     item={pick}
-                    className="group-hover:scale-105 transition-transform duration-300"
+                    className="group-hover:scale-105 transition-transform duration-500 ease-linear"
                   />
                 </div>
-                <div className="p-5 text-white">
+                <div className="p-5 flex flex-col gap-2">
                   <span className="text-[11px] uppercase tracking-widest text-f1-red font-semibold">
                     {pick.category}
                   </span>
-                  <h3 className="mt-2 text-lg font-black uppercase leading-snug group-hover:text-f1-red transition-colors">
+                  <h3 className="text-lg font-black uppercase leading-snug group-hover:text-f1-red transition-colors">
                     {pick.title}
                   </h3>
-                  <p className="mt-2 text-sm text-f1-text-muted">{pick.excerpt}</p>
+                  <p className="text-sm text-f1-text-muted">{pick.excerpt}</p>
                   {pick.author && (
-                    <p className="mt-3 text-xs uppercase tracking-wide text-f1-text-muted">
-                      {pick.author}
-                    </p>
+                    <p className="text-xs uppercase tracking-wide text-f1-text-muted">{pick.author}</p>
                   )}
                 </div>
               </article>
@@ -181,7 +179,7 @@ const Home = () => {
                   <div className="relative h-16 w-24 shrink-0 overflow-hidden bg-f1-card-bg">
                     <MediaBlock
                       item={item}
-                      className="group-hover:scale-105 transition-transform duration-300"
+                      className="group-hover:scale-105 transition-transform duration-500 ease-linear"
                     />
                   </div>
                   <div className="min-w-0">
@@ -192,9 +190,7 @@ const Home = () => {
                       {item.title}
                     </h3>
                     {item.author && (
-                      <p className="text-xs uppercase tracking-wide text-f1-text-muted">
-                        {item.author}
-                      </p>
+                      <p className="text-xs uppercase tracking-wide text-f1-text-muted">{item.author}</p>
                     )}
                   </div>
                 </a>
@@ -203,7 +199,7 @@ const Home = () => {
           </ul>
         </section>
 
-        {/* Global services */}
+        {/* Section D: Global services */}
         <section>
           <SectionHeading>Global services</SectionHeading>
           <div className="h-px w-full bg-f1-border-grey mt-4" />
@@ -213,14 +209,14 @@ const Home = () => {
           </p>
         </section>
 
-        {/* Leadership */}
+        {/* Section E: Leadership */}
         <section>
           <SectionHeading>Leadership</SectionHeading>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mt-6">
             {leaders.map((leader) => (
               <div
                 key={leader._id}
-                className="bg-f1-card-bg border-t-4 border-f1-red p-5 text-center hover:shadow-xl transition-all duration-300"
+                className="bg-f1-card-bg border-t-4 border-f1-red p-5 text-center hover:shadow-2xl transition-all duration-300"
               >
                 <div className="mx-auto h-20 w-20 overflow-hidden rounded-full bg-gradient-to-br from-zinc-700 to-f1-asphalt border border-f1-border-grey">
                   {leader.imageUrl ? (
@@ -239,11 +235,11 @@ const Home = () => {
           </div>
         </section>
 
-        {/* Dual action banners */}
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Dual high-contrast banners */}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-12">
           <a
             href="#"
-            className="border border-f1-border-grey bg-transparent p-6 flex justify-between items-center group cursor-pointer hover:bg-white hover:text-f1-asphalt transition-all duration-200"
+            className="border border-f1-border-grey bg-transparent p-6 flex justify-between items-center cursor-pointer group hover:bg-white hover:text-f1-asphalt transition-colors duration-200"
           >
             <span className="font-bold uppercase text-white group-hover:text-f1-asphalt">
               Lunix betting &gt;
@@ -251,7 +247,7 @@ const Home = () => {
           </a>
           <a
             href="#"
-            className="border border-f1-red bg-f1-red p-6 flex justify-between items-center group cursor-pointer hover:bg-white hover:text-f1-asphalt transition-all duration-200"
+            className="border border-f1-border-grey bg-transparent p-6 flex justify-between items-center cursor-pointer group hover:bg-white hover:text-f1-asphalt transition-colors duration-200"
           >
             <span className="font-bold uppercase text-white group-hover:text-f1-asphalt">
               Lunix Tickets &#8599;
@@ -263,4 +259,4 @@ const Home = () => {
   );
 };
 
-export default Home;
+export default Dashboard;

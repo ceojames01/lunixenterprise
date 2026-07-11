@@ -12,7 +12,7 @@ export default {
         'f1-text-muted': '#94A3B8',
       },
       fontFamily: {
-        'f1-display': ['"Titillium Web"', 'sans-serif'],
+        'f1-font': ['"Titillium Web"', 'sans-serif'],
         sans: ['"Titillium Web"', 'system-ui', 'sans-serif'],
       },
     },

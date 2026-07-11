@@ -24,7 +24,7 @@ const editorialSchema = new mongoose.Schema(
     category: {
       type: String,
       enum: ['Ticketing', 'Betting', 'Corporate', 'General'],
-      default: 'General',
+      default: 'Corporate',
     },
     author: {
       type: String,

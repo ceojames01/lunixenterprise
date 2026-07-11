@@ -20,7 +20,7 @@ const leaderSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
-    order: {
+    displayOrder: {
       type: Number,
       default: 0,
     },

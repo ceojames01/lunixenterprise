@@ -45,28 +45,28 @@ const leadership = [
     role: 'Chief Executive Officer',
     bio: 'Two decades steering enterprise platforms through hyper-growth. Believes infrastructure should be invisible.',
     imageUrl: '',
-    order: 1,
+    displayOrder: 1,
   },
   {
     name: 'Marcus Adeyemi',
     role: 'Chief Technology Officer',
     bio: 'Distributed systems veteran focused on resilient, low-latency architecture across global regions.',
     imageUrl: '',
-    order: 2,
+    displayOrder: 2,
   },
   {
     name: 'Sofia Lindqvist',
     role: 'Head of Global Services',
     bio: 'Leads the cross-continental delivery organization keeping Lunix operations always-on.',
     imageUrl: '',
-    order: 3,
+    displayOrder: 3,
   },
   {
     name: 'Daniel Reyes',
     role: 'VP of Partnerships',
     bio: 'Architects the strategic alliances that extend the Lunix ecosystem into new markets.',
     imageUrl: '',
-    order: 4,
+    displayOrder: 4,
   },
 ];
 

@@ -5,7 +5,8 @@ const getEditorsPicks = async (req, res, next) => {
   try {
     const editorsPicks = await Editorial.find({ isEditorsPick: true })
       .sort({ createdAt: -1 })
-      .limit(3);
+      .limit(3)
+      .lean();
 
     res.status(200).json({ success: true, count: editorsPicks.length, data: editorsPicks });
   } catch (error) {
@@ -15,7 +16,7 @@ const getEditorsPicks = async (req, res, next) => {
 
 const getLeadershipTeam = async (req, res, next) => {
   try {
-    const leadership = await Leader.find().sort({ order: 1 });
+    const leadership = await Leader.find().sort({ displayOrder: 1 }).lean();
 
     res.status(200).json({ success: true, count: leadership.length, data: leadership });
   } catch (error) {
@@ -23,14 +24,17 @@ const getLeadershipTeam = async (req, res, next) => {
   }
 };
 
-const getLatestNews = async (req, res, next) => {
+const getGeneralContent = async (req, res, next) => {
   try {
-    const latestNews = await Editorial.find().sort({ createdAt: -1 }).limit(5);
+    const { category } = req.query;
+    const filter = category ? { category } : {};
 
-    res.status(200).json({ success: true, count: latestNews.length, data: latestNews });
+    const articles = await Editorial.find(filter).sort({ createdAt: -1 }).lean();
+
+    res.status(200).json({ success: true, count: articles.length, data: articles });
   } catch (error) {
     next(error);
   }
 };
 
-module.exports = { getEditorsPicks, getLeadershipTeam, getLatestNews };
+module.exports = { getEditorsPicks, getLeadershipTeam, getGeneralContent };

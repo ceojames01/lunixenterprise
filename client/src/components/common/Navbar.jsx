@@ -1,3 +1,5 @@
+import { User } from 'lucide-react';
+
 const Navbar = () => {
   const utilityLinks = ['Tickets', 'Editors Pick', 'Betting'];
   const mainLinks = ['Overview', 'Corporate structure', 'Global services', 'Leadership'];
@@ -6,12 +8,19 @@ const Navbar = () => {
     <header className="w-full">
       {/* Tier 1: Top utility ribbon */}
       <div className="bg-f1-black border-b border-f1-border-grey">
-        <div className="max-w-7xl mx-auto px-4 h-8 flex items-center justify-end gap-5 text-[11px] font-semibold text-f1-text-muted uppercase">
+        <div className="max-w-7xl mx-auto px-4 h-10 flex items-center justify-end gap-5 text-[11px] font-bold text-white uppercase">
           {utilityLinks.map((link) => (
-            <a key={link} href="#" className="hover:text-white transition-colors">
+            <a key={link} href="#" className="hover:text-f1-text-muted transition-colors">
               {link}
             </a>
           ))}
+          <a
+            href="#"
+            className="flex items-center gap-2 bg-f1-red text-white h-full px-5 hover:bg-red-700 transition-colors"
+          >
+            <User size={14} className="stroke-[3]" />
+            <span>Sign In</span>
+          </a>
         </div>
       </div>
 

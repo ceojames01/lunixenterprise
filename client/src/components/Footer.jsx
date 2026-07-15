@@ -1,5 +1,25 @@
+import { useEffect, useState } from 'react';
+import api from '../services/api';
+
 const Footer = () => {
-  const partners = ['Nova', 'Orbital', 'Vertex', 'Halcyon', 'Meridian'];
+  const [partners, setPartners] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    const fetchPartners = async () => {
+      try {
+        const res = await api.get('/content/partners');
+        if (active && res.data?.data) {
+          setPartners(res.data.data);
+        }
+      } catch (error) {
+        console.error('Failed to fetch partners', error);
+      }
+    };
+    fetchPartners();
+    return () => { active = false; };
+  }, []);
+
   const columns = [
     {
       title: 'Company',
@@ -22,35 +42,42 @@ const Footer = () => {
   return (
     <footer className="w-full">
       {/* Block Tier 1: Feedback callout strip */}
-      <div className="bg-f1-red text-white py-6 px-8 flex flex-col md:flex-row justify-between items-center gap-4 border-b border-f1-black">
-        <h2 className="text-2xl md:text-3xl font-black uppercase">Help Shape The Lunix Website</h2>
-        <form className="flex w-full md:w-auto" onSubmit={(e) => e.preventDefault()}>
-          <input
-            type="email"
-            placeholder="you@company.com"
-            className="flex-1 md:w-64 min-w-0 px-4 py-2 bg-f1-black border border-black text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-black"
-          />
-          <button
-            type="submit"
-            className="px-5 py-2 bg-black text-white font-bold uppercase tracking-wide hover:bg-zinc-800 transition-colors"
-          >
-            Send
+      <div className="bg-[#000000] pt-12 pb-6 px-4 md:px-8 border-b border-f1-black">
+        <div className="bg-f1-red text-white rounded-xl py-12 md:py-20 px-8 md:px-16 flex flex-col items-start max-w-7xl mx-auto">
+          <h2 className="text-5xl md:text-[5.5rem] font-black uppercase leading-[0.95] tracking-tight">
+            HELP SHAPE THE LUNIX<br className="hidden md:block" /> WEBSITE
+          </h2>
+          <p className="mt-6 mb-8 text-[15px] font-medium tracking-wide">
+            Take a few minutes to tell us what you think.
+          </p>
+          <button className="bg-white text-black font-extrabold text-[15px] py-2.5 px-8 rounded-full hover:bg-zinc-200 transition-colors">
+            Let's go
           </button>
-        </form>
+        </div>
       </div>
 
       {/* Block Tier 2: Partners banner grid */}
-      <div className="bg-f1-black py-10 px-8 border-b border-f1-border-grey">
-        <h3 className="text-sm font-black uppercase tracking-wider text-white mb-4">Our Partner</h3>
-        <div className="flex flex-wrap gap-4">
-          {partners.map((name) => (
-            <div
-              key={name}
-              className="flex h-12 px-6 items-center justify-center bg-zinc-900 border border-f1-border-grey text-zinc-400 text-sm font-semibold grayscale opacity-60 hover:opacity-100 transition-opacity"
-            >
-              {name}
-            </div>
-          ))}
+      <div className="bg-[#111115] py-12 px-4 md:px-8 border-b border-f1-border-grey">
+        <div className="max-w-7xl mx-auto flex flex-col gap-8">
+          <div className="flex justify-between items-center w-full">
+            <h3 className="text-3xl md:text-[2rem] font-black uppercase tracking-tighter text-white">OUR PARTNERS</h3>
+            <a href="#" className="text-white text-[15px] font-bold hover:text-f1-red transition-colors">View all</a>
+          </div>
+          <div className="flex flex-wrap items-center justify-center md:justify-start gap-12 md:gap-16 mt-2">
+            {partners.length > 0 ? partners.map((partner) => (
+              partner.link && partner.link !== '#' ? (
+                <a key={partner._id} href={partner.link} target="_blank" rel="noopener noreferrer" className="opacity-70 hover:opacity-100 transition-opacity filter grayscale hover:grayscale-0">
+                  <img src={partner.imageUrl} alt={partner.name} className="h-8 md:h-12 object-contain" />
+                </a>
+              ) : (
+                <div key={partner._id} className="opacity-70 hover:opacity-100 transition-opacity filter grayscale hover:grayscale-0">
+                  <img src={partner.imageUrl} alt={partner.name} className="h-8 md:h-12 object-contain" />
+                </div>
+              )
+            )) : (
+              <p className="text-zinc-500 text-sm">No partners available.</p>
+            )}
+          </div>
         </div>
       </div>
 

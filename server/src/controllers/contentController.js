@@ -1,5 +1,8 @@
 const { Editorial } = require('../models/Editorial');
 const { Leader } = require('../models/Leader');
+const { Partner } = require('../models/Partner');
+const { Hero } = require('../models/Hero');
+const { NextEvent } = require('../models/NextEvent');
 
 const getEditorsPicks = async (req, res, next) => {
   try {
@@ -37,4 +40,32 @@ const getGeneralContent = async (req, res, next) => {
   }
 };
 
-module.exports = { getEditorsPicks, getLeadershipTeam, getGeneralContent };
+const getPartners = async (req, res, next) => {
+  try {
+    const partners = await Partner.find({ isActive: true }).sort({ displayOrder: 1 }).lean();
+
+    res.status(200).json({ success: true, count: partners.length, data: partners });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getHero = async (req, res, next) => {
+  try {
+    const hero = await Hero.findOne({ isActive: true }).sort({ createdAt: -1 }).lean();
+    res.status(200).json({ success: true, data: hero });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getNextEvent = async (req, res, next) => {
+  try {
+    const nextEvent = await NextEvent.findOne({ isActive: true }).sort({ createdAt: -1 }).lean();
+    res.status(200).json({ success: true, data: nextEvent });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getEditorsPicks, getLeadershipTeam, getGeneralContent, getPartners, getHero, getNextEvent };

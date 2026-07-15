@@ -20,6 +20,10 @@ const leaderSchema = new mongoose.Schema(
       type: String,
       default: '',
     },
+    instagramUrl: {
+      type: String,
+      default: '',
+    },
     displayOrder: {
       type: Number,
       default: 0,

@@ -3,6 +3,10 @@ const { Leader } = require('../models/Leader');
 const { Partner } = require('../models/Partner');
 const { Hero } = require('../models/Hero');
 const { NextEvent } = require('../models/NextEvent');
+const { Order } = require('../models/Order');
+const { Schedule } = require('../models/Schedule');
+const { SiteConfig } = require('../models/SiteConfig');
+const { User } = require('../models/User');
 
 // --- EVENT CRUD ---
 const createEvent = async (req, res, next) => {
@@ -159,10 +163,189 @@ const deleteEditorial = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// --- ORDERS CRUD ---
+const getOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find()
+      .populate('user', 'name email phone')
+      .populate('event', 'title dateRange')
+      .sort({ createdAt: -1 });
+    res.status(200).json({ success: true, count: orders.length, data: orders });
+  } catch (error) { next(error); }
+};
+
+const updateOrder = async (req, res, next) => {
+  try {
+    const { status } = req.body;
+    const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true })
+      .populate('user', 'name email phone')
+      .populate('event', 'title dateRange');
+      
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Order not found' });
+    }
+    
+    res.status(200).json({ success: true, data: order });
+  } catch (error) { next(error); }
+};
+
+const verifyOrder = async (req, res, next) => {
+  try {
+    const { ticketCode } = req.body;
+    
+    if (!ticketCode) {
+      return res.status(400).json({ success: false, message: 'Ticket code is required' });
+    }
+
+    const order = await Order.findOne({ ticketCode })
+      .populate('user', 'name email phone')
+      .populate('event', 'title dateRange');
+
+    if (!order) {
+      return res.status(404).json({ success: false, message: 'Invalid Ticket Code' });
+    }
+
+    if (order.isScanned) {
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Ticket has already been scanned!', 
+        data: order 
+      });
+    }
+
+    if (order.status !== 'COMPLETED') {
+      return res.status(400).json({ 
+        success: false, 
+        message: `Ticket is invalid. Order status is ${order.status}`,
+        data: order
+      });
+    }
+
+    order.isScanned = true;
+    await order.save();
+
+    res.status(200).json({ 
+      success: true, 
+      message: 'Ticket verified and marked as scanned successfully!',
+      data: order 
+    });
+  } catch (error) { next(error); }
+};
+
+
+// --- SCHEDULE CRUD ---
+const createSchedule = async (req, res, next) => {
+  try {
+    const schedule = await Schedule.create(req.body);
+    res.status(201).json({ success: true, data: schedule });
+  } catch (error) { next(error); }
+};
+
+const getSchedules = async (req, res, next) => {
+  try {
+    const schedules = await Schedule.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, count: schedules.length, data: schedules });
+  } catch (error) { next(error); }
+};
+
+const updateSchedule = async (req, res, next) => {
+  try {
+    const schedule = await Schedule.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!schedule) return res.status(404).json({ success: false, message: 'Schedule not found' });
+    res.status(200).json({ success: true, data: schedule });
+  } catch (error) { next(error); }
+};
+
+const deleteSchedule = async (req, res, next) => {
+  try {
+    const schedule = await Schedule.findByIdAndDelete(req.params.id);
+    if (!schedule) return res.status(404).json({ success: false, message: 'Schedule not found' });
+    res.status(200).json({ success: true, data: {} });
+  } catch (error) { next(error); }
+};
+
+// --- UPLOAD IMAGE ---
+const uploadImage = async (req, res, next) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No file provided' });
+    }
+    res.status(200).json({ success: true, url: req.file.path });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// --- CONFIG ---
+const getSiteConfig = async (req, res, next) => {
+  try {
+    let config = await SiteConfig.findOne();
+    if (!config) {
+      config = await SiteConfig.create({});
+    }
+    res.status(200).json({ success: true, data: config });
+  } catch (error) { next(error); }
+};
+
+const updateSiteConfig = async (req, res, next) => {
+  try {
+    let config = await SiteConfig.findOne();
+    if (!config) {
+      config = await SiteConfig.create(req.body);
+    } else {
+      config = await SiteConfig.findByIdAndUpdate(config._id, req.body, { new: true, runValidators: true });
+    }
+    res.status(200).json({ success: true, data: config });
+  } catch (error) { next(error); }
+};
+
+// --- USER CRUD ---
+const createUser = async (req, res, next) => {
+  try {
+    const user = await User.create(req.body);
+    res.status(201).json({ success: true, data: user });
+  } catch (error) { next(error); }
+};
+
+const getUsers = async (req, res, next) => {
+  try {
+    const users = await User.find().sort({ createdAt: -1 });
+    res.status(200).json({ success: true, count: users.length, data: users });
+  } catch (error) { next(error); }
+};
+
+const updateUser = async (req, res, next) => {
+  try {
+    if (req.body.password) {
+      const user = await User.findById(req.params.id);
+      if (user) {
+        user.password = req.body.password;
+        await user.save();
+        delete req.body.password;
+      }
+    }
+    const user = await User.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.status(200).json({ success: true, data: user });
+  } catch (error) { next(error); }
+};
+
+const deleteUser = async (req, res, next) => {
+  try {
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ success: false, message: 'User not found' });
+    res.status(200).json({ success: true, data: {} });
+  } catch (error) { next(error); }
+};
+
 module.exports = {
   createEvent, getEvents, updateEvent, deleteEvent,
   createHero, getHeroes, updateHero, deleteHero,
   createPartner, getPartners, updatePartner, deletePartner,
   createLeader, getLeaders, updateLeader, deleteLeader,
-  createEditorial, getEditorials, updateEditorial, deleteEditorial
+  createEditorial, getEditorials, updateEditorial, deleteEditorial,
+  createSchedule, getSchedules, updateSchedule, deleteSchedule,
+  getUsers, createUser, updateUser, deleteUser,
+  uploadImage, getSiteConfig, updateSiteConfig,
+  getOrders, updateOrder, verifyOrder
 };

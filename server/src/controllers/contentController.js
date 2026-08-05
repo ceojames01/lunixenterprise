@@ -3,15 +3,24 @@ const { Leader } = require('../models/Leader');
 const { Partner } = require('../models/Partner');
 const { Hero } = require('../models/Hero');
 const { NextEvent } = require('../models/NextEvent');
+const { Schedule } = require('../models/Schedule');
+const { SiteConfig } = require('../models/SiteConfig');
 
 const getEditorsPicks = async (req, res, next) => {
   try {
     const editorsPicks = await Editorial.find({ isEditorsPick: true })
       .sort({ createdAt: -1 })
-      .limit(3)
+      .limit(6)
       .lean();
 
-    res.status(200).json({ success: true, count: editorsPicks.length, data: editorsPicks });
+    const config = await SiteConfig.findOne().lean();
+
+    res.status(200).json({ 
+      success: true, 
+      count: editorsPicks.length, 
+      data: editorsPicks,
+      driveLink: config ? config.editorsPicksLink : ''
+    });
   } catch (error) {
     next(error);
   }
@@ -68,4 +77,52 @@ const getNextEvent = async (req, res, next) => {
   }
 };
 
-module.exports = { getEditorsPicks, getLeadershipTeam, getGeneralContent, getPartners, getHero, getNextEvent };
+const getAllEvents = async (req, res, next) => {
+  try {
+    const events = await NextEvent.find({ isActive: true }).sort({ createdAt: -1 }).lean();
+    res.status(200).json({ success: true, count: events.length, data: events });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getEventById = async (req, res, next) => {
+  try {
+    const event = await NextEvent.findById(req.params.id).lean();
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    res.status(200).json({ success: true, data: event });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getSchedule = async (req, res, next) => {
+  try {
+    const schedule = await Schedule.findOne({ isActive: true }).sort({ createdAt: -1 }).lean();
+    res.status(200).json({ success: true, data: schedule });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getConfig = async (req, res, next) => {
+  try {
+    const config = await SiteConfig.findOne().lean();
+    res.status(200).json({ success: true, data: config || {} });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = {
+  getEditorsPicks,
+  getLeadershipTeam,
+  getGeneralContent,
+  getPartners,
+  getHero,
+  getNextEvent,
+  getAllEvents,
+  getEventById,
+  getSchedule,
+  getConfig
+};

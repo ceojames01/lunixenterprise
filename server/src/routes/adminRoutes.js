@@ -6,11 +6,21 @@ const {
   createHero, getHeroes, updateHero, deleteHero,
   createPartner, getPartners, updatePartner, deletePartner,
   createLeader, getLeaders, updateLeader, deleteLeader,
-  createEditorial, getEditorials, updateEditorial, deleteEditorial
+  createEditorial, getEditorials, updateEditorial, deleteEditorial,
+  createSchedule, getSchedules, updateSchedule, deleteSchedule,
+  getUsers, createUser, updateUser, deleteUser,
+  uploadImage, getSiteConfig, updateSiteConfig
 } = require('../controllers/adminController');
+const { upload } = require('../config/cloudinary');
 
 // All admin routes require authentication
 router.use(auth);
+
+// Upload
+router.post('/upload', upload.single('image'), uploadImage);
+
+// Config
+router.route('/config').get(getSiteConfig).put(updateSiteConfig);
 
 // Events
 router.route('/event').post(createEvent).get(getEvents);
@@ -31,5 +41,19 @@ router.route('/leaders/:id').put(updateLeader).delete(deleteLeader);
 // Editorials
 router.route('/editorials').post(createEditorial).get(getEditorials);
 router.route('/editorials/:id').put(updateEditorial).delete(deleteEditorial);
+
+// Schedule
+router.route('/schedule').post(createSchedule).get(getSchedules);
+router.route('/schedule/:id').put(updateSchedule).delete(deleteSchedule);
+
+// Users
+router.route('/users').get(getUsers).post(createUser);
+router.route('/users/:id').put(updateUser).delete(deleteUser);
+
+// Orders
+const { getOrders, updateOrder, verifyOrder } = require('../controllers/adminController');
+router.route('/orders').get(getOrders);
+router.route('/orders/:id').put(updateOrder);
+router.route('/orders/:id/verify').put(verifyOrder);
 
 module.exports = router;

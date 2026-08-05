@@ -29,9 +29,26 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
+      enum: ['user', 'admin', 'scanner'],
       default: 'user',
     },
+    phone: {
+      type: String,
+      default: 'N/A',
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive'],
+      default: 'Active',
+    },
+    address: {
+      type: String,
+      default: '',
+    },
+    wishlist: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'NextEvent'
+    }],
   },
   {
     timestamps: true,

@@ -7,10 +7,18 @@ const heroSchema = new mongoose.Schema(
       required: [true, 'Please enter a title'],
       trim: true,
     },
+    subtitle: {
+      type: String,
+      trim: true,
+    },
     badgeText: {
       type: String,
       default: 'UNLOCKED',
       trim: true,
+    },
+    showBadge: {
+      type: Boolean,
+      default: true,
     },
     mediaUrl: {
       type: String,
@@ -20,6 +28,19 @@ const heroSchema = new mongoose.Schema(
       type: String,
       enum: ['image', 'video'],
       default: 'image',
+    },
+    overlayOpacity: {
+      type: Number,
+      default: 50,
+    },
+    sectionHeight: {
+      type: String,
+      default: '85vh',
+    },
+    headingSize: {
+      type: String,
+      enum: ['Small', 'Medium', 'Large (Default)', 'Extra Large'],
+      default: 'Large (Default)',
     },
     isActive: {
       type: Boolean,

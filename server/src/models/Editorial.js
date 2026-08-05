@@ -23,7 +23,6 @@ const editorialSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['Ticketing', 'Betting', 'Corporate', 'General'],
       default: 'Corporate',
     },
     author: {

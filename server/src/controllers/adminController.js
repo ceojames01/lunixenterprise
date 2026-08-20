@@ -7,6 +7,7 @@ const { Order } = require('../models/Order');
 const { Schedule } = require('../models/Schedule');
 const { SiteConfig } = require('../models/SiteConfig');
 const { User } = require('../models/User');
+const { sendTicketEmail, sendTicketWhatsApp } = require('../services/notificationService');
 
 // --- EVENT CRUD ---
 const createEvent = async (req, res, next) => {
@@ -177,14 +178,27 @@ const getOrders = async (req, res, next) => {
 const updateOrder = async (req, res, next) => {
   try {
     const { status } = req.body;
+    const originalOrder = await Order.findById(req.params.id);
     const order = await Order.findByIdAndUpdate(req.params.id, { status }, { new: true, runValidators: true })
       .populate('user', 'name email phone')
-      .populate('event', 'title dateRange');
+      .populate('event');
       
     if (!order) {
       return res.status(404).json({ success: false, message: 'Order not found' });
     }
     
+    if (originalOrder && originalOrder.status !== 'COMPLETED' && status === 'COMPLETED') {
+      const email = order.billingInfo?.email || (order.user && order.user.email);
+      const phone = order.billingInfo?.phone || (order.user && order.user.phone);
+      
+      if (email) {
+        sendTicketEmail(email, order, order.event).catch(err => console.error('Email send failed', err));
+      }
+      if (phone) {
+        sendTicketWhatsApp(phone, order, order.event).catch(err => console.error('WhatsApp send failed', err));
+      }
+    }
+
     res.status(200).json({ success: true, data: order });
   } catch (error) { next(error); }
 };
@@ -338,6 +352,61 @@ const deleteUser = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+// --- LEADERBOARD ---
+const getLeaderboard = async (req, res, next) => {
+  try {
+    const leaderboard = await Order.aggregate([
+      { $match: { seller: { $ne: null }, status: 'COMPLETED' } },
+      { $unwind: "$tickets" },
+      { 
+        $group: {
+          _id: "$seller",
+          totalTicketsSold: { $sum: "$tickets.quantity" },
+          totalRevenue: { $sum: { $multiply: ["$tickets.price", "$tickets.quantity"] } },
+          soldTickets: { $push: "$tickets" }
+        }
+      },
+      {
+        $lookup: {
+          from: "users",
+          localField: "_id",
+          foreignField: "_id",
+          as: "sellerDetails"
+        }
+      },
+      { $unwind: { path: "$sellerDetails", preserveNullAndEmptyArrays: true } },
+      {
+        $project: {
+          _id: 1,
+          totalTicketsSold: 1,
+          totalRevenue: 1,
+          soldTickets: 1,
+          name: "$sellerDetails.name",
+          email: "$sellerDetails.email",
+          phone: "$sellerDetails.phone",
+          role: "$sellerDetails.role"
+        }
+      },
+      { $sort: { totalTicketsSold: -1 } }
+    ]);
+    
+    res.status(200).json({ success: true, data: leaderboard });
+  } catch (error) { next(error); }
+};
+
+// --- WHATSAPP AUTH ---
+const getWhatsAppStatus = (req, res) => {
+  const whatsappService = require('../services/whatsappService');
+  const status = whatsappService.getStatus();
+  res.json({ success: true, ...status });
+};
+
+const logoutWhatsApp = async (req, res) => {
+  const whatsappService = require('../services/whatsappService');
+  await whatsappService.logout();
+  res.json({ success: true, message: 'WhatsApp logged out' });
+};
+
 module.exports = {
   createEvent, getEvents, updateEvent, deleteEvent,
   createHero, getHeroes, updateHero, deleteHero,
@@ -347,5 +416,6 @@ module.exports = {
   createSchedule, getSchedules, updateSchedule, deleteSchedule,
   getUsers, createUser, updateUser, deleteUser,
   uploadImage, getSiteConfig, updateSiteConfig,
-  getOrders, updateOrder, verifyOrder
+  getOrders, updateOrder, verifyOrder, getLeaderboard,
+  getWhatsAppStatus, logoutWhatsApp
 };

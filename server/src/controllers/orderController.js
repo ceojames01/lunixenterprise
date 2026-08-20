@@ -1,5 +1,6 @@
 const { Order } = require('../models/Order');
 const { NextEvent } = require('../models/NextEvent');
+const { sendTicketEmail, sendTicketWhatsApp, notifyAdminCashOrder } = require('../services/notificationService');
 
 const createOrder = async (req, res, next) => {
   try {
@@ -15,15 +16,37 @@ const createOrder = async (req, res, next) => {
       return res.status(404).json({ success: false, message: 'Event not found' });
     }
 
+    let sellerId = null;
+    if (req.user && ['admin', 'scanner'].includes(req.user.role)) {
+      sellerId = req.user._id;
+    }
+
     const order = await Order.create({
-      user: req.user._id, // Assuming req.user is populated by protect middleware
+      user: req.user._id, // The account making the purchase
+      seller: sellerId,
       event: eventId,
       tickets,
       totalAmount,
       paymentMethod,
       billingInfo,
-      status: paymentMethod === 'MPESA' ? 'PENDING' : 'COMPLETED',
+      status: ['MPESA', 'CASH'].includes(paymentMethod) ? 'PENDING' : 'COMPLETED',
     });
+
+    // Send notifications if completed
+    if (order.status === 'COMPLETED') {
+      const email = billingInfo.email || (req.user && req.user.email);
+      const phone = billingInfo.phone || (req.user && req.user.phone);
+      
+      if (email) {
+        sendTicketEmail(email, order, event).catch(err => console.error('Email send failed', err));
+      }
+      if (phone) {
+        sendTicketWhatsApp(phone, order, event).catch(err => console.error('WhatsApp send failed', err));
+      }
+    } else if (order.status === 'PENDING' && paymentMethod === 'CASH') {
+      const scannerName = req.user.name || req.user.email;
+      notifyAdminCashOrder(scannerName, order, event).catch(err => console.error('Cash alert failed', err));
+    }
 
     res.status(201).json({
       success: true,

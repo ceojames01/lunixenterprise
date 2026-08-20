@@ -13,6 +13,11 @@ const orderSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
+    seller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
+    },
     event: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'NextEvent',
@@ -25,7 +30,7 @@ const orderSchema = new mongoose.Schema(
     },
     paymentMethod: {
       type: String,
-      enum: ['MPESA', 'CARDS'],
+      enum: ['MPESA', 'CARDS', 'CASH'],
       required: true,
     },
     billingInfo: {

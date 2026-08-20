@@ -3,3 +3,5 @@ node_modules
 logs
 coverage
 *.log
+.wwebjs_auth
+whatsapp-auth

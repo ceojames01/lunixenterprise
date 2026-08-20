@@ -50,10 +50,15 @@ router.route('/schedule/:id').put(updateSchedule).delete(deleteSchedule);
 router.route('/users').get(getUsers).post(createUser);
 router.route('/users/:id').put(updateUser).delete(deleteUser);
 
-// Orders
-const { getOrders, updateOrder, verifyOrder } = require('../controllers/adminController');
+// Orders and Leaderboard
+const { getOrders, updateOrder, verifyOrder, getLeaderboard, getWhatsAppStatus, logoutWhatsApp } = require('../controllers/adminController');
 router.route('/orders').get(getOrders);
 router.route('/orders/:id').put(updateOrder);
 router.route('/orders/:id/verify').put(verifyOrder);
+router.route('/leaderboard').get(getLeaderboard);
+
+// --- WHATSAPP ROUTES ---
+router.get('/whatsapp/status', getWhatsAppStatus);
+router.post('/whatsapp/logout', logoutWhatsApp);
 
 module.exports = router;

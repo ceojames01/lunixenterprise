@@ -1,0 +1,8 @@
+[providers.node]
+nodeVersion = "18"
+
+[phases.setup]
+nixPkgs = ["...", "nss", "xorg.libX11", "xorg.libXcomposite", "xorg.libXext", "xorg.libXdamage", "xorg.libXrandr", "xorg.libxcb", "alsa-lib", "atk", "cups", "dbus", "libdrm", "gtk3", "pango", "mesa"]
+
+[phases.build]
+cmds = ["npm install"]

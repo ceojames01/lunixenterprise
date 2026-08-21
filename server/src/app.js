@@ -13,7 +13,7 @@ const mpesaRoutes = require('./routes/mpesaRoutes');
 
 const app = express();
 
-app.set('trust proxy', 1);
+app.set('trust proxy', true);
 app.use(helmet());
 
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
@@ -27,6 +27,7 @@ const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000,
   max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 1000,
   message: { success: false, message: 'Too many requests, please try again later' },
+  validate: { xForwardedForHeader: false }
 });
 
 app.use('/api/', limiter);

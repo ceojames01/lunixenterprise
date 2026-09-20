@@ -51,8 +51,9 @@ router.route('/users').get(getUsers).post(createUser);
 router.route('/users/:id').put(updateUser).delete(deleteUser);
 
 // Orders and Leaderboard
-const { getOrders, updateOrder, verifyOrder, getLeaderboard, getWhatsAppStatus, logoutWhatsApp } = require('../controllers/adminController');
+const { getOrders, updateOrder, verifyOrder, getLeaderboard, bulkGenerateTickets, getWhatsAppStatus, logoutWhatsApp } = require('../controllers/adminController');
 router.route('/orders').get(getOrders);
+router.route('/orders/bulk-generate').post(bulkGenerateTickets);
 router.route('/orders/:id').put(updateOrder);
 router.route('/orders/:id/verify').put(verifyOrder);
 router.route('/leaderboard').get(getLeaderboard);

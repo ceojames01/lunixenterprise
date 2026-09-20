@@ -13,8 +13,17 @@ const server = app.listen(PORT, () => {
 });
 
 process.on('unhandledRejection', (err) => {
-  logger.error(`Unhandled Rejection: ${err.message}`);
-  server.close(() => process.exit(1));
+  logger.error(`Unhandled Rejection: ${err && err.stack ? err.stack : err}`);
+  if (process.env.NODE_ENV === 'production') {
+    server.close(() => process.exit(1));
+  }
+});
+
+process.on('uncaughtException', (err) => {
+  logger.error(`Uncaught Exception: ${err && err.stack ? err.stack : err}`);
+  if (process.env.NODE_ENV === 'production') {
+    server.close(() => process.exit(1));
+  }
 });
 
 process.on('SIGTERM', () => {
@@ -24,3 +33,4 @@ process.on('SIGTERM', () => {
     process.exit(0);
   });
 });
+

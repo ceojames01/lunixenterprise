@@ -169,7 +169,7 @@ const getOrders = async (req, res, next) => {
   try {
     const orders = await Order.find()
       .populate('user', 'name email phone')
-      .populate('event', 'title dateRange')
+      .populate('event')
       .sort({ createdAt: -1 });
     res.status(200).json({ success: true, count: orders.length, data: orders });
   } catch (error) { next(error); }
@@ -246,6 +246,92 @@ const verifyOrder = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
+const bulkGenerateTickets = async (req, res, next) => {
+  try {
+    const { count = 1, eventId, tierName = 'REGULAR PASS', price = 0, note = 'Admin Batch' } = req.body;
+    
+    const parsedCount = parseInt(count, 10);
+    if (isNaN(parsedCount) || parsedCount < 1 || parsedCount > 2000) {
+      return res.status(400).json({ success: false, message: 'Please specify a valid count between 1 and 2000' });
+    }
+
+    let targetEventId = eventId;
+    if (!targetEventId) {
+      const activeEvent = await NextEvent.findOne({ isActive: true }).sort({ createdAt: -1 }) || await NextEvent.findOne().sort({ createdAt: -1 });
+      if (!activeEvent) {
+        return res.status(400).json({ success: false, message: 'No event found. Please create an event first.' });
+      }
+      targetEventId = activeEvent._id;
+    }
+
+    let userId = req.user?._id;
+    let userEmail = req.user?.email || 'admin@lunix.com';
+    let userPhone = req.user?.phone || 'N/A';
+    if (!userId) {
+      const { User } = require('../models/User');
+      const adminUser = await User.findOne({ role: 'admin' }) || await User.findOne();
+      if (adminUser) {
+        userId = adminUser._id;
+        userEmail = adminUser.email || userEmail;
+        userPhone = adminUser.phone || userPhone;
+      }
+    }
+
+    const { v4: uuidv4 } = require('uuid');
+    const ticketsToCreate = [];
+    const batchId = uuidv4().split('-')[0].toUpperCase();
+
+    for (let i = 1; i <= parsedCount; i++) {
+      const randomHex1 = uuidv4().split('-')[0].toUpperCase();
+      const randomHex2 = uuidv4().split('-')[1].toUpperCase();
+      const ticketCode = `${randomHex1}-${randomHex2}`;
+      const qrCodeData = `LUNIX-TKT-${ticketCode}`;
+
+      ticketsToCreate.push({
+        user: userId,
+        seller: userId,
+        event: targetEventId,
+        tickets: [{
+          name: tierName || 'REGULAR PASS',
+          price: Number(price) || 0,
+          quantity: 1
+        }],
+        totalAmount: Number(price) || 0,
+        paymentMethod: 'CASH',
+        billingInfo: {
+          firstName: 'Admin Batch',
+          lastName: `#${i} (${batchId})`,
+          email: userEmail,
+          phone: userPhone,
+          address: note || 'Physical Ticket Print',
+          city: 'Nairobi',
+          country: 'Kenya'
+        },
+        status: 'COMPLETED',
+        isScanned: false,
+        ticketCode,
+        qrCodeData
+      });
+    }
+
+    const createdOrders = await Order.insertMany(ticketsToCreate);
+
+    // Populate event for the returned orders
+    const populatedOrders = await Order.find({ _id: { $in: createdOrders.map(o => o._id) } })
+      .populate('user', 'name email phone')
+      .populate('event');
+
+    res.status(201).json({
+      success: true,
+      message: `Successfully generated ${createdOrders.length} tickets in batch ${batchId}!`,
+      count: createdOrders.length,
+      data: populatedOrders
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 
 // --- SCHEDULE CRUD ---
 const createSchedule = async (req, res, next) => {
@@ -284,7 +370,8 @@ const uploadImage = async (req, res, next) => {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file provided' });
     }
-    res.status(200).json({ success: true, url: req.file.path });
+    const fileUrl = req.file.path || req.file.secure_url || req.file.url;
+    res.status(200).json({ success: true, url: fileUrl });
   } catch (error) {
     next(error);
   }
@@ -416,6 +503,6 @@ module.exports = {
   createSchedule, getSchedules, updateSchedule, deleteSchedule,
   getUsers, createUser, updateUser, deleteUser,
   uploadImage, getSiteConfig, updateSiteConfig,
-  getOrders, updateOrder, verifyOrder, getLeaderboard,
+  getOrders, updateOrder, verifyOrder, getLeaderboard, bulkGenerateTickets,
   getWhatsAppStatus, logoutWhatsApp
 };

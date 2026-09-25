@@ -12,6 +12,16 @@ connectDB();
 const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`[BOOT] HTTP server listening on 0.0.0.0:${PORT}`);
   logger.info(`Server running in ${process.env.NODE_ENV || 'production'} mode on port ${PORT}`);
+
+  // Safely initialize WhatsApp background service after web server is open
+  try {
+    const { initWhatsApp } = require('./services/whatsappService');
+    initWhatsApp().catch(err => {
+      console.warn('[WhatsApp] Background initialization skipped or failed:', err.message || err);
+    });
+  } catch (err) {
+    console.warn('[WhatsApp] Could not load WhatsApp module:', err.message || err);
+  }
 });
 
 process.on('unhandledRejection', (err) => {

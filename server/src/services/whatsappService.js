@@ -133,9 +133,7 @@ const sendMessage = async (phone, text, mediaBase64 = null) => {
   }
 };
 
-initWhatsApp().catch(err => {
-  console.error("Initial WhatsApp setup failed (server still running):", err.message || err);
-});
+// Do not auto-initialize on require so HTTP server can bind port first
 
 module.exports = {
   getStatus,

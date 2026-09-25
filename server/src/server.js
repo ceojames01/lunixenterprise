@@ -4,11 +4,13 @@ const app = require('./app');
 const { connectDB } = require('./config/database');
 const { logger } = require('./utils/logger');
 
-const PORT = process.env.PORT || 5000;
+const PORT = parseInt(process.env.PORT, 10) || 5000;
 
+console.log(`[BOOT] Initializing database connection...`);
 connectDB();
 
 const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`[BOOT] HTTP server listening on 0.0.0.0:${PORT}`);
   logger.info(`Server running in ${process.env.NODE_ENV || 'production'} mode on port ${PORT}`);
 });
 

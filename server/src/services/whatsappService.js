@@ -67,10 +67,12 @@ const initWhatsApp = async () => {
       }, 2000);
     });
 
-    await client.initialize();
+    await client.initialize().catch(err => {
+      console.error("WhatsApp client initialization error:", err.message);
+    });
 
   } catch (error) {
-    console.error("Failed to initialize WhatsApp service:", error);
+    console.error("Failed to initialize WhatsApp service:", error.message || error);
   }
 };
 
@@ -124,12 +126,16 @@ const sendMessage = async (phone, text, mediaBase64 = null) => {
     console.log(`Successfully sent WhatsApp message to ${formattedPhone}`);
   } catch (error) {
     const fs = require('fs');
-    fs.appendFileSync('wa_error.log', new Date().toISOString() + ' - ' + error.stack + '\n');
+    try {
+      fs.appendFileSync('wa_error.log', new Date().toISOString() + ' - ' + (error.stack || error) + '\n');
+    } catch (e) {}
     console.error(`Failed to send WhatsApp message to ${phone}:`, error);
   }
 };
 
-initWhatsApp();
+initWhatsApp().catch(err => {
+  console.error("Initial WhatsApp setup failed (server still running):", err.message || err);
+});
 
 module.exports = {
   getStatus,

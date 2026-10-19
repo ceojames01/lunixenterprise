@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { auth } = require('../middleware/auth');
 const {
-  createEvent, getEvents, updateEvent, deleteEvent,
+  createEvent, getEvents, updateEvent, deleteEvent, setVenueBannerEvent,
   createHero, getHeroes, updateHero, deleteHero,
   createPartner, getPartners, updatePartner, deletePartner,
   createLeader, getLeaders, updateLeader, deleteLeader,
@@ -25,6 +25,7 @@ router.route('/config').get(getSiteConfig).put(updateSiteConfig);
 // Events
 router.route('/event').post(createEvent).get(getEvents);
 router.route('/event/:id').put(updateEvent).delete(deleteEvent);
+router.put('/event/:id/set-banner', setVenueBannerEvent);
 
 // Hero
 router.route('/hero').post(createHero).get(getHeroes);

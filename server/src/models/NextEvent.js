@@ -58,6 +58,26 @@ const nextEventSchema = new mongoose.Schema(
       name: { type: String, trim: true },
       price: { type: Number, default: 0 }
     }],
+    psdUrl: {
+      type: String,
+      trim: true,
+    },
+    psdFileName: {
+      type: String,
+      trim: true,
+    },
+    psdFileSize: {
+      type: String,
+      trim: true,
+    },
+    ticketTemplateUrl: {
+      type: String,
+      trim: true,
+    },
+    isVenueBanner: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,

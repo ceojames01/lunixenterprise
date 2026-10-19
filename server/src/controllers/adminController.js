@@ -12,6 +12,14 @@ const { sendTicketEmail, sendTicketWhatsApp } = require('../services/notificatio
 // --- EVENT CRUD ---
 const createEvent = async (req, res, next) => {
   try {
+    const existingCount = await NextEvent.countDocuments();
+    const isBanner = req.body.isVenueBanner === true || req.body.isVenueBanner === 'true';
+    if (existingCount === 0 || isBanner) {
+      if (isBanner) {
+        await NextEvent.updateMany({}, { isVenueBanner: false });
+      }
+      req.body.isVenueBanner = true;
+    }
     const event = await NextEvent.create(req.body);
     res.status(201).json({ success: true, data: event });
   } catch (error) { next(error); }
@@ -26,9 +34,25 @@ const getEvents = async (req, res, next) => {
 
 const updateEvent = async (req, res, next) => {
   try {
+    const isBanner = req.body.isVenueBanner === true || req.body.isVenueBanner === 'true';
+    if (isBanner) {
+      await NextEvent.updateMany({ _id: { $ne: req.params.id } }, { isVenueBanner: false });
+      req.body.isVenueBanner = true;
+    } else if (req.body.isVenueBanner === false || req.body.isVenueBanner === 'false') {
+      req.body.isVenueBanner = false;
+    }
     const event = await NextEvent.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
     res.status(200).json({ success: true, data: event });
+  } catch (error) { next(error); }
+};
+
+const setVenueBannerEvent = async (req, res, next) => {
+  try {
+    await NextEvent.updateMany({}, { isVenueBanner: false });
+    const event = await NextEvent.findByIdAndUpdate(req.params.id, { isVenueBanner: true }, { new: true });
+    if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    res.status(200).json({ success: true, message: 'Venue banner event selected successfully', data: event });
   } catch (error) { next(error); }
 };
 
@@ -36,6 +60,12 @@ const deleteEvent = async (req, res, next) => {
   try {
     const event = await NextEvent.findByIdAndDelete(req.params.id);
     if (!event) return res.status(404).json({ success: false, message: 'Event not found' });
+    if (event.isVenueBanner) {
+      const remaining = await NextEvent.findOne({ isActive: true }).sort({ createdAt: -1 });
+      if (remaining) {
+        await NextEvent.findByIdAndUpdate(remaining._id, { isVenueBanner: true });
+      }
+    }
     res.status(200).json({ success: true, data: {} });
   } catch (error) { next(error); }
 };
@@ -213,7 +243,7 @@ const verifyOrder = async (req, res, next) => {
 
     const order = await Order.findOne({ ticketCode })
       .populate('user', 'name email phone')
-      .populate('event', 'title dateRange');
+      .populate('event');
 
     if (!order) {
       return res.status(404).json({ success: false, message: 'Invalid Ticket Code' });
@@ -364,14 +394,47 @@ const deleteSchedule = async (req, res, next) => {
   } catch (error) { next(error); }
 };
 
-// --- UPLOAD IMAGE ---
+// --- UPLOAD IMAGE & FILES (PSD, PNG, JPG) ---
 const uploadImage = async (req, res, next) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No file provided' });
     }
-    const fileUrl = req.file.path || req.file.secure_url || req.file.url;
-    res.status(200).json({ success: true, url: fileUrl });
+
+    let fileUrl = `/uploads/${req.file.filename}`;
+    const fileSizeMb = (req.file.size / (1024 * 1024)).toFixed(2);
+    const isPsd = req.file.originalname?.toLowerCase().endsWith('.psd');
+    const isLarge = req.file.size > 5 * 1024 * 1024;
+    const isLayout = req.query.isLayout === 'true' || 
+                     req.file.originalname?.toLowerCase().includes('layout') || 
+                     req.file.originalname?.toLowerCase().includes('ticket') || 
+                     req.file.originalname?.toLowerCase().includes('template') ||
+                     req.file.originalname?.toLowerCase().includes('clean');
+
+    // Only upload small general web images (< 5MB, non-PSD, non-layout) to Cloudinary
+    // Layouts, ticket templates, PSDs and large files are served directly from local /uploads for lightning speed
+    if (!isPsd && !isLarge && !isLayout && process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
+      try {
+        const { cloudinary } = require('../config/cloudinary');
+        const result = await cloudinary.uploader.upload(req.file.path, {
+          folder: 'lunix-enterprise',
+          resource_type: 'auto',
+          timeout: 6000
+        });
+        if (result && (result.secure_url || result.url)) {
+          fileUrl = result.secure_url || result.url;
+        }
+      } catch (cloudErr) {
+        console.warn('[Upload] Cloudinary upload fallback to local storage:', cloudErr.message || cloudErr);
+      }
+    }
+
+    res.status(200).json({ 
+      success: true, 
+      url: fileUrl,
+      fileName: req.file.originalname,
+      fileSize: `${fileSizeMb} MB`
+    });
   } catch (error) {
     next(error);
   }
@@ -495,7 +558,7 @@ const logoutWhatsApp = async (req, res) => {
 };
 
 module.exports = {
-  createEvent, getEvents, updateEvent, deleteEvent,
+  createEvent, getEvents, updateEvent, deleteEvent, setVenueBannerEvent,
   createHero, getHeroes, updateHero, deleteHero,
   createPartner, getPartners, updatePartner, deletePartner,
   createLeader, getLeaders, updateLeader, deleteLeader,

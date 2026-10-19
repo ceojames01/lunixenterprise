@@ -70,8 +70,24 @@ const getHero = async (req, res, next) => {
 
 const getNextEvent = async (req, res, next) => {
   try {
-    const nextEvent = await NextEvent.findOne({ isActive: true }).sort({ createdAt: -1 }).lean();
-    res.status(200).json({ success: true, data: nextEvent });
+    const activeEvents = await NextEvent.find({ isActive: true }).sort({ createdAt: -1 }).lean();
+    
+    if (!activeEvents || activeEvents.length === 0) {
+      const anyEvent = await NextEvent.findOne().sort({ createdAt: -1 }).lean();
+      return res.status(200).json({ success: true, data: anyEvent });
+    }
+
+    // If only 1 event, that is the automatic default to appear there
+    if (activeEvents.length === 1) {
+      return res.status(200).json({ success: true, data: activeEvents[0] });
+    }
+
+    // If more than 1 event: decided from the created events (admin checked isVenueBanner: true)
+    const bannerEvent = activeEvents.find(e => e.isVenueBanner) 
+      || await NextEvent.findOne({ isVenueBanner: true }).lean()
+      || activeEvents[0];
+      
+    res.status(200).json({ success: true, data: bannerEvent });
   } catch (error) {
     next(error);
   }
